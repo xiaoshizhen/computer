@@ -6,6 +6,10 @@
 #include <unordered_map>
 #include <functional>
 
+// ==================== 静态变量定义 ====================
+Calculator::AngleMode Calculator::angleMode = Calculator::AngleMode::RAD;
+double Calculator::ans = 0.0;
+
 // ==================== 基本运算 ====================
 
 double Calculator::add(double a, double b) {
@@ -37,7 +41,6 @@ double Calculator::modulo(double a, double b) {
 // ==================== 高级运算 ====================
 
 double Calculator::power(double base, double exp) {
-    // 处理特殊情形：负数的小数次幂
     if (base < 0 && std::floor(exp) != exp) {
         throw std::invalid_argument("负数不能进行非整数次幂运算");
     }
@@ -49,6 +52,11 @@ double Calculator::sqrt(double value) {
         throw std::invalid_argument("不能对负数开平方根");
     }
     return std::sqrt(value);
+}
+
+double Calculator::cbrt(double value) {
+    // cbrt 对负数也有效
+    return std::cbrt(value);
 }
 
 long long Calculator::factorial(int n) {
@@ -68,19 +76,102 @@ long long Calculator::factorial(int n) {
 // ==================== 三角函数 ====================
 
 double Calculator::sin(double value) {
+    if (angleMode == AngleMode::DEG) {
+        value = value * PI / 180.0;
+    }
     return std::sin(value);
 }
 
 double Calculator::cos(double value) {
+    if (angleMode == AngleMode::DEG) {
+        value = value * PI / 180.0;
+    }
     return std::cos(value);
 }
 
 double Calculator::tan(double value) {
+    if (angleMode == AngleMode::DEG) {
+        value = value * PI / 180.0;
+    }
     double c = std::cos(value);
     if (std::abs(c) < 1e-15) {
         throw std::invalid_argument("tan 未定义（cos 接近零）");
     }
     return std::tan(value);
+}
+
+// ==================== 反三角函数 ====================
+
+double Calculator::asin(double value) {
+    if (value < -1.0 || value > 1.0) {
+        throw std::invalid_argument("asin 的参数必须在 [-1, 1] 范围内");
+    }
+    double result = std::asin(value);
+    if (angleMode == AngleMode::DEG) {
+        result = result * 180.0 / PI;
+    }
+    return result;
+}
+
+double Calculator::acos(double value) {
+    if (value < -1.0 || value > 1.0) {
+        throw std::invalid_argument("acos 的参数必须在 [-1, 1] 范围内");
+    }
+    double result = std::acos(value);
+    if (angleMode == AngleMode::DEG) {
+        result = result * 180.0 / PI;
+    }
+    return result;
+}
+
+double Calculator::atan(double value) {
+    double result = std::atan(value);
+    if (angleMode == AngleMode::DEG) {
+        result = result * 180.0 / PI;
+    }
+    return result;
+}
+
+double Calculator::atan2(double y, double x) {
+    double result = std::atan2(y, x);
+    if (angleMode == AngleMode::DEG) {
+        result = result * 180.0 / PI;
+    }
+    return result;
+}
+
+// ==================== 双曲函数 ====================
+
+double Calculator::sinh(double value) {
+    return std::sinh(value);
+}
+
+double Calculator::cosh(double value) {
+    return std::cosh(value);
+}
+
+double Calculator::tanh(double value) {
+    return std::tanh(value);
+}
+
+// ==================== 反双曲函数 ====================
+
+double Calculator::asinh(double value) {
+    return std::asinh(value);
+}
+
+double Calculator::acosh(double value) {
+    if (value < 1.0) {
+        throw std::invalid_argument("acosh 的参数必须 >= 1");
+    }
+    return std::acosh(value);
+}
+
+double Calculator::atanh(double value) {
+    if (value <= -1.0 || value >= 1.0) {
+        throw std::invalid_argument("atanh 的参数必须在 (-1, 1) 范围内");
+    }
+    return std::atanh(value);
 }
 
 // ==================== 对数函数 ====================
@@ -106,6 +197,34 @@ double Calculator::log2(double value) {
     return std::log2(value);
 }
 
+double Calculator::logb(double value, double base) {
+    if (value <= 0) {
+        throw std::invalid_argument("对数函数的真数必须为正数");
+    }
+    if (base <= 0 || base == 1.0) {
+        throw std::invalid_argument("对数的底数必须为正数且不等于 1");
+    }
+    return std::log(value) / std::log(base);
+}
+
+// ==================== 取整函数 ====================
+
+double Calculator::floor(double value) {
+    return std::floor(value);
+}
+
+double Calculator::ceil(double value) {
+    return std::ceil(value);
+}
+
+double Calculator::round(double value) {
+    return std::round(value);
+}
+
+double Calculator::trunc(double value) {
+    return std::trunc(value);
+}
+
 // ==================== 其他函数 ====================
 
 double Calculator::abs(double value) {
@@ -114,6 +233,95 @@ double Calculator::abs(double value) {
 
 double Calculator::exp(double value) {
     return std::exp(value);
+}
+
+double Calculator::sign(double value) {
+    if (value > 0.0) return 1.0;
+    if (value < 0.0) return -1.0;
+    return 0.0;
+}
+
+double Calculator::gamma(double value) {
+    // tgamma 在非正整数处极点
+    if (value <= 0.0 && std::floor(value) == value) {
+        throw std::invalid_argument("Gamma 函数在非正整数处无定义");
+    }
+    return std::tgamma(value);
+}
+
+double Calculator::hypot(double x, double y) {
+    return std::hypot(x, y);
+}
+
+double Calculator::isPrime(long long n) {
+    if (n < 2) return 0.0;
+    if (n == 2) return 1.0;
+    if (n % 2 == 0) return 0.0;
+    for (long long i = 3; i * i <= n; i += 2) {
+        if (n % i == 0) return 0.0;
+    }
+    return 1.0;
+}
+
+// ==================== 组合数学 ====================
+
+long long Calculator::perm(int n, int r) {
+    if (n < 0 || r < 0) {
+        throw std::invalid_argument("排列参数必须为非负整数");
+    }
+    if (r > n) {
+        throw std::invalid_argument("排列中 r 不能大于 n");
+    }
+    if (n > 20) {
+        throw std::invalid_argument("排列结果过大，最大支持 n=20");
+    }
+    long long result = 1;
+    for (int i = 0; i < r; ++i) {
+        result *= (n - i);
+    }
+    return result;
+}
+
+long long Calculator::comb(int n, int r) {
+    if (n < 0 || r < 0) {
+        throw std::invalid_argument("组合参数必须为非负整数");
+    }
+    if (r > n) {
+        throw std::invalid_argument("组合中 r 不能大于 n");
+    }
+    if (n > 20) {
+        throw std::invalid_argument("组合结果过大，最大支持 n=20");
+    }
+    // 利用对称性减少计算量
+    if (r > n - r) {
+        r = n - r;
+    }
+    long long result = 1;
+    for (int i = 0; i < r; ++i) {
+        result = result * (n - i) / (i + 1);
+    }
+    return result;
+}
+
+// ==================== 数论 ====================
+
+long long Calculator::gcd(long long a, long long b) {
+    return std::gcd(a, b);
+}
+
+long long Calculator::lcm(long long a, long long b) {
+    if (a == 0 || b == 0) return 0;
+    return std::lcm(a, b);
+}
+
+// ==================== 角度转换 ====================
+
+double Calculator::degToRad(double deg) {
+    return deg * PI / 180.0;
+}
+
+double Calculator::radToDeg(double rad) {
+    return rad * 180.0 / PI;
 }
 
 // ==================== 统计运算 ====================
@@ -154,11 +362,16 @@ double Calculator::stddev(const std::vector<double>& numbers) {
 // ==================== 表达式求值 ====================
 // 递归下降解析器，支持:
 //   - 基本运算: + - * / % ^
-//   - 一元负号
+//   - 一元负号/正号
 //   - 括号
-//   - 函数: sin cos tan sqrt ln log log2 abs exp
-//   - 常量: pi e
-//   - 隐式乘法: 2pi, 3(1+2), (2)(3)
+//   - 单参数函数: sin cos tan asin acos atan
+//                 sinh cosh tanh asinh acosh atanh
+//                 sqrt cbrt ln log log2 abs exp
+//                 floor ceil round trunc sign gamma
+//   - 双参数函数: hypot atan2 perm comb gcd lcm logb
+//   - 常量: pi e phi sqrt2 ln2 ln10 ans
+//   - 隐式乘法: 2pi, 3(1+2), (2)(3), pi(2)
+//   - 科学记数法: 1.5e10, 2E-3
 
 namespace {
 
@@ -193,7 +406,6 @@ private:
     // level 3: ^ (右结合)
     // level 4: 一元 - / 函数 / 常量 / 数字 / 括号
 
-    // 加减法（最低优先级）
     double parseAddSub() {
         double left = parseMulDiv();
         skipSpaces();
@@ -211,7 +423,6 @@ private:
         return left;
     }
 
-    // 乘除取模
     double parseMulDiv() {
         double left = parsePower();
         skipSpaces();
@@ -236,13 +447,12 @@ private:
         return left;
     }
 
-    // 幂运算（右结合）
     double parsePower() {
         double left = parseUnary();
         skipSpaces();
         if (pos_ < s_.size() && s_[pos_] == '^') {
             ++pos_;
-            double right = parsePower(); // 右结合：递归调用自身
+            double right = parsePower(); // 右结合
             if (left < 0 && std::floor(right) != right) {
                 throw std::invalid_argument("负数不能进行非整数次幂运算");
             }
@@ -252,16 +462,13 @@ private:
         return left;
     }
 
-    // 一元运算符 / 隐式乘法
     double parseUnary() {
         skipSpaces();
 
-        // 一元负号
         if (pos_ < s_.size() && s_[pos_] == '-') {
             ++pos_;
             return -parseAtom();
         }
-        // 一元正号
         if (pos_ < s_.size() && s_[pos_] == '+') {
             ++pos_;
             return parseAtom();
@@ -270,7 +477,6 @@ private:
         return parseAtom();
     }
 
-    // 原子：数字、括号、函数、常量
     double parseAtom() {
         skipSpaces();
         if (pos_ >= s_.size()) {
@@ -293,7 +499,6 @@ private:
                 if (std::isdigit(static_cast<unsigned char>(nxt)) ||
                     nxt == '(' ||
                     std::isalpha(static_cast<unsigned char>(nxt))) {
-                    // 隐式乘法
                     double right = parseAtom();
                     return value * right;
                 }
@@ -310,6 +515,22 @@ private:
         return parseNumber();
     }
 
+    // 将字符串转为小写
+    static std::string toLower(const std::string& s) {
+        std::string result;
+        for (char c : s)
+            result += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        return result;
+    }
+
+    // 检查是否为双参数函数
+    static bool isTwoArgFunc(const std::string& lower) {
+        return lower == "hypot"  || lower == "atan2" ||
+               lower == "perm"   || lower == "comb"  ||
+               lower == "gcd"    || lower == "lcm"   ||
+               lower == "logb";
+    }
+
     // 解析函数调用或常量
     double parseFunctionOrConstant() {
         size_t start = pos_;
@@ -317,15 +538,11 @@ private:
             ++pos_;
         }
         std::string name = s_.substr(start, pos_ - start);
+        std::string lower = toLower(name);
 
-        // 将名称转为小写以便不区分大小写
-        std::string lower;
-        for (char c : name) lower += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
-        // ---- 常量 ----
-        if (lower == "pi") {
-            double val = Calculator::PI;
-            // 隐式乘法：pi 后直接跟数字/字母/括号
+        // ---- ans 变量 ----
+        if (lower == "ans") {
+            double val = Calculator::ans;
             skipSpaces();
             if (pos_ < s_.size()) {
                 char nxt = s_[pos_];
@@ -337,18 +554,28 @@ private:
             }
             return val;
         }
-        if (lower == "e") {
-            double val = Calculator::E;
+
+        // ---- 常量 ----
+        double constVal = 0;
+        bool isConst = false;
+        if (lower == "pi")    { constVal = Calculator::PI;    isConst = true; }
+        if (lower == "e")     { constVal = Calculator::E;     isConst = true; }
+        if (lower == "phi")   { constVal = Calculator::PHI;   isConst = true; }
+        if (lower == "sqrt2") { constVal = Calculator::SQRT2; isConst = true; }
+        if (lower == "ln2")   { constVal = Calculator::LN2;   isConst = true; }
+        if (lower == "ln10")  { constVal = Calculator::LN10;  isConst = true; }
+
+        if (isConst) {
             skipSpaces();
             if (pos_ < s_.size()) {
                 char nxt = s_[pos_];
                 if (std::isdigit(static_cast<unsigned char>(nxt)) ||
                     nxt == '(' ||
                     std::isalpha(static_cast<unsigned char>(nxt))) {
-                    return val * parseAtom();
+                    return constVal * parseAtom();
                 }
             }
-            return val;
+            return constVal;
         }
 
         // ---- 函数 ----
@@ -357,12 +584,36 @@ private:
             throw std::invalid_argument("函数 '" + name + "' 后需要 '('，例如 " + name + "(...)");
         }
         ++pos_; // 跳过 '('
-        double arg = parseAddSub();
+
+        // 解析第一个参数
+        double arg1 = parseAddSub();
         skipSpaces();
+
+        double arg2 = 0.0;
+        bool hasSecondArg = false;
+
+        // 检查是否有逗号（双参数函数）
+        if (pos_ < s_.size() && s_[pos_] == ',') {
+            ++pos_;
+            arg2 = parseAddSub();
+            skipSpaces();
+            hasSecondArg = true;
+        }
+
+        // 期望右括号
         if (pos_ >= s_.size() || s_[pos_] != ')') {
             throw std::invalid_argument("函数 '" + name + "' 缺少右括号 ')'");
         }
         ++pos_; // 跳过 ')'
+
+        // 验证参数个数
+        bool needsTwo = isTwoArgFunc(lower);
+        if (needsTwo && !hasSecondArg) {
+            throw std::invalid_argument("函数 '" + name + "' 需要两个参数，如 " + name + "(x, y)");
+        }
+        if (!needsTwo && hasSecondArg) {
+            throw std::invalid_argument("函数 '" + name + "' 只接受一个参数");
+        }
 
         // 隐式乘法：func(...) 后接数字/字母/括号
         skipSpaces();
@@ -376,41 +627,164 @@ private:
             }
         }
 
-        double result;
+        double result = dispatchFunction(lower, arg1, arg2);
+        return result * implicitMul;
+    }
+
+    // 根据函数名分派调用
+    double dispatchFunction(const std::string& lower, double arg1, double arg2) {
+        // ---- 三角函数 ----
         if (lower == "sin") {
-            result = std::sin(arg);
-        } else if (lower == "cos") {
-            result = std::cos(arg);
-        } else if (lower == "tan") {
-            double c = std::cos(arg);
+            if (Calculator::angleMode == Calculator::AngleMode::DEG)
+                arg1 = arg1 * Calculator::PI / 180.0;
+            return std::sin(arg1);
+        }
+        if (lower == "cos") {
+            if (Calculator::angleMode == Calculator::AngleMode::DEG)
+                arg1 = arg1 * Calculator::PI / 180.0;
+            return std::cos(arg1);
+        }
+        if (lower == "tan") {
+            if (Calculator::angleMode == Calculator::AngleMode::DEG)
+                arg1 = arg1 * Calculator::PI / 180.0;
+            double c = std::cos(arg1);
             if (std::abs(c) < 1e-15)
                 throw std::invalid_argument("tan 未定义（cos 接近零）");
-            result = std::tan(arg);
-        } else if (lower == "sqrt") {
-            if (arg < 0)
-                throw std::invalid_argument("sqrt 的参数不能为负数");
-            result = std::sqrt(arg);
-        } else if (lower == "ln") {
-            if (arg <= 0)
-                throw std::invalid_argument("ln 的参数必须为正数");
-            result = std::log(arg);
-        } else if (lower == "log") {
-            if (arg <= 0)
-                throw std::invalid_argument("log 的参数必须为正数");
-            result = std::log10(arg);
-        } else if (lower == "log2") {
-            if (arg <= 0)
-                throw std::invalid_argument("log2 的参数必须为正数");
-            result = std::log2(arg);
-        } else if (lower == "abs") {
-            result = std::abs(arg);
-        } else if (lower == "exp") {
-            result = std::exp(arg);
-        } else {
-            throw std::invalid_argument("未知函数: '" + name + "'");
+            return std::tan(arg1);
         }
 
-        return result * implicitMul;
+        // ---- 反三角函数 ----
+        if (lower == "asin") {
+            if (arg1 < -1.0 || arg1 > 1.0)
+                throw std::invalid_argument("asin 的参数必须在 [-1, 1] 范围内");
+            double r = std::asin(arg1);
+            if (Calculator::angleMode == Calculator::AngleMode::DEG)
+                r = r * 180.0 / Calculator::PI;
+            return r;
+        }
+        if (lower == "acos") {
+            if (arg1 < -1.0 || arg1 > 1.0)
+                throw std::invalid_argument("acos 的参数必须在 [-1, 1] 范围内");
+            double r = std::acos(arg1);
+            if (Calculator::angleMode == Calculator::AngleMode::DEG)
+                r = r * 180.0 / Calculator::PI;
+            return r;
+        }
+        if (lower == "atan") {
+            double r = std::atan(arg1);
+            if (Calculator::angleMode == Calculator::AngleMode::DEG)
+                r = r * 180.0 / Calculator::PI;
+            return r;
+        }
+
+        // ---- 双曲函数 ----
+        if (lower == "sinh")  return std::sinh(arg1);
+        if (lower == "cosh")  return std::cosh(arg1);
+        if (lower == "tanh")  return std::tanh(arg1);
+
+        // ---- 反双曲函数 ----
+        if (lower == "asinh") return std::asinh(arg1);
+        if (lower == "acosh") {
+            if (arg1 < 1.0)
+                throw std::invalid_argument("acosh 的参数必须 >= 1");
+            return std::acosh(arg1);
+        }
+        if (lower == "atanh") {
+            if (arg1 <= -1.0 || arg1 >= 1.0)
+                throw std::invalid_argument("atanh 的参数必须在 (-1, 1) 范围内");
+            return std::atanh(arg1);
+        }
+
+        // ---- 根号 ----
+        if (lower == "sqrt") {
+            if (arg1 < 0)
+                throw std::invalid_argument("sqrt 的参数不能为负数");
+            return std::sqrt(arg1);
+        }
+        if (lower == "cbrt") return std::cbrt(arg1);
+
+        // ---- 对数 ----
+        if (lower == "ln") {
+            if (arg1 <= 0)
+                throw std::invalid_argument("ln 的参数必须为正数");
+            return std::log(arg1);
+        }
+        if (lower == "log") {
+            if (arg1 <= 0)
+                throw std::invalid_argument("log 的参数必须为正数");
+            return std::log10(arg1);
+        }
+        if (lower == "log2") {
+            if (arg1 <= 0)
+                throw std::invalid_argument("log2 的参数必须为正数");
+            return std::log2(arg1);
+        }
+
+        // ---- 取整 ----
+        if (lower == "floor") return std::floor(arg1);
+        if (lower == "ceil")  return std::ceil(arg1);
+        if (lower == "round") return std::round(arg1);
+        if (lower == "trunc") return std::trunc(arg1);
+
+        // ---- 其他 ----
+        if (lower == "abs")   return std::abs(arg1);
+        if (lower == "exp")   return std::exp(arg1);
+        if (lower == "sign") {
+            if (arg1 > 0.0) return 1.0;
+            if (arg1 < 0.0) return -1.0;
+            return 0.0;
+        }
+        if (lower == "gamma") {
+            if (arg1 <= 0.0 && std::floor(arg1) == arg1)
+                throw std::invalid_argument("Gamma 函数在非正整数处无定义");
+            return std::tgamma(arg1);
+        }
+        if (lower == "isprime") {
+            long long n = static_cast<long long>(arg1);
+            if (n < 2) return 0.0;
+            if (n == 2) return 1.0;
+            if (n % 2 == 0) return 0.0;
+            for (long long i = 3; i * i <= n; i += 2) {
+                if (n % i == 0) return 0.0;
+            }
+            return 1.0;
+        }
+
+        // ---- 双参数函数 ----
+        if (lower == "hypot") return std::hypot(arg1, arg2);
+        if (lower == "atan2") {
+            double r = std::atan2(arg1, arg2);
+            if (Calculator::angleMode == Calculator::AngleMode::DEG)
+                r = r * 180.0 / Calculator::PI;
+            return r;
+        }
+        if (lower == "logb") {
+            if (arg1 <= 0)
+                throw std::invalid_argument("logb 的真数必须为正数");
+            if (arg2 <= 0 || arg2 == 1.0)
+                throw std::invalid_argument("logb 的底数必须为正数且不等于 1");
+            return std::log(arg1) / std::log(arg2);
+        }
+        if (lower == "perm") {
+            int n = static_cast<int>(arg1);
+            int r = static_cast<int>(arg2);
+            return static_cast<double>(Calculator::perm(n, r));
+        }
+        if (lower == "comb") {
+            int n = static_cast<int>(arg1);
+            int r = static_cast<int>(arg2);
+            return static_cast<double>(Calculator::comb(n, r));
+        }
+        if (lower == "gcd") {
+            return static_cast<double>(Calculator::gcd(
+                static_cast<long long>(arg1), static_cast<long long>(arg2)));
+        }
+        if (lower == "lcm") {
+            return static_cast<double>(Calculator::lcm(
+                static_cast<long long>(arg1), static_cast<long long>(arg2)));
+        }
+
+        throw std::invalid_argument("未知函数: '" + lower + "'");
     }
 
     // 解析数字（支持小数和科学记数法）
@@ -418,7 +792,6 @@ private:
         skipSpaces();
         size_t start = pos_;
 
-        // 可选负号（作为数字的一部分）
         if (pos_ < s_.size() && s_[pos_] == '-') ++pos_;
 
         bool hasDigits = false;
@@ -473,5 +846,7 @@ private:
 
 double Calculator::evaluate(const std::string& expr) {
     ExprParser parser(expr);
-    return parser.parse();
+    double result = parser.parse();
+    ans = result; // 自动更新 ans
+    return result;
 }
