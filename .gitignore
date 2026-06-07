@@ -1,0 +1,21 @@
+# 编译产物
+build/
+cmake-build-*/
+*.exe
+*.out
+*.o
+*.obj
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
